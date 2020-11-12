@@ -1,0 +1,2 @@
+1.在Apple开发者中心配置 AppleID 和 Merchant IDs
+2.配置好证书后在Xcode的Capabilities中开启Apple Pay

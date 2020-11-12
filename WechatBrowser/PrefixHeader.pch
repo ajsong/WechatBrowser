@@ -1,0 +1,31 @@
+//
+//  Prefix.pch
+//
+//  Created by ajsong on 2015-4-21.
+//  Copyright (c) 2014 @jsong. All rights reserved.
+//
+
+//Build Settings - Unused Variables - No
+//Build Settings - Implicit retain of 'self' within blocks - No
+//Build Settings - Documentation Comments - No
+//Build Settings - Strict Prototypes - No
+//Build Settings - Build Options - Enable Bitcode - No
+//Build Settings - Apple LLVM 6.0 - Preprocessing - Enable Strict Checking of objc_msgSend Calls - No
+//Build Settings - Precompile Prefix Header - Yes
+//Build Settings - Prefix Header - $(PROJECT_DIR)/$(PROJECT)/PrefixHeader.pch
+//Build Settings - Other Linker Flags - -ObjC
+
+#ifndef PrefixHeader_pch
+#define PrefixHeader_pch
+
+#import <Availability.h>
+
+#ifdef __OBJC__
+#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
+#import "Global.h"
+#import "AppDelegate+Config.h"
+#import "GlobalDelegate.h"
+#endif
+
+#endif

@@ -1,0 +1,28 @@
+Info.plist
+添加 URL types
+增加一项(Editor)
+添加 URL Schemes
+增加一项, 值为 callback
+
+PRIVATEKEY
+登录 https://b.alipay.com/order/pidAndKey.htm 查看PID|KEY
+
+打开终端, 输入 openssl, 进入openssl模式
+
+生成RSA私钥
+输入 “genrsa -out rsa_private_key.pem 1024” 命令,
+回车后, 在当前文件目录中会新增一个 rsa_private_key.pem 文件, 其文件为原始的商户私钥(请妥善保存该文件, 而且放置到PHP代码对应的位置处)
+
+生成PKCS8编码的私钥
+输入 “pkcs8 -topk8 -inform PEM -in rsa_private_key.pem -outform PEM -nocrypt” 命令并回车
+复制 -----BEGIN PUBLIC KEY----- 、-----END PUBLIC KEY----- 之间的字符
+把字符里面所有的回车、换行、空格去掉, 变成只有一行文字, 把这行文字粘贴到 SDK 的 ALIPAY_PRIVATEKEY 里
+
+生成RSA公钥
+输入 “rsa -in rsa_private_key.pem -pubout -out rsa_public_key.pem” 命令,
+回车后, 在当前文件目录中会新增一个 rsa_public_key.pem 文件, 其文件为原始的商户公钥(请妥善保存该文件)
+
+以文本形式打开 rsa_public_key.pem
+去掉 -----BEGIN PUBLIC KEY----- 、-----END PUBLIC KEY-----
+然后把所有的回车、换行、空格去掉, 变成只有一行文字
+把这行文字放到网页的 合作伙伴密钥管理 - 安全校验码(Key) - RSA加密 里面

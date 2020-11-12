@@ -1,0 +1,7 @@
+v1.8.0
+libz.tbd
+libsqlite3.0.tbd
+libc++.tbd
+Security.framework
+CoreTelephony.framework
+CFNetwork.framework

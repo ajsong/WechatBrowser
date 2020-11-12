@@ -1,0 +1,227 @@
+<!doctype html>
+<html style="font-size:100px;">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=320,minimum-scale=1.0,maximum-scale=1.0,initial-scale=1.0,user-scalable=no">
+<meta name="format-detection" content="telephone=no">
+<meta name="format-detection" content="email=no">
+<meta name="format-detection" content="address=no">
+<title>AJEditor</title>
+<style>
+html, body{background-color:transparent; margin:0; padding:0; height:100%;}
+#editor, #textarea, img, a{border:none; -webkit-tap-highlight-color:rgba(0,0,0,0);}
+[contenteditable=true]:empty:before{content:attr(placeholder); color:#a6a6a6; font-size:0.13rem;} /* placeholder for contenteditable dom */
+#view{padding:0; height:100%; box-sizing:border-box;}
+#view.showmenu{padding-top:0.42rem;}
+.view #menu{display:none;}
+#article{width:100%; height:100%; padding-top:0.05rem; box-sizing:border-box;}
+#editor, #textarea{font-size:0.13rem; width:100%; height:100%; float:left; color:#333333; margin:0; padding:0.07rem; font-family:Helvetica; box-sizing:border-box; outline:none; resize:none; background-color:transparent; -webkit-appearance:none;}
+#editor{overflow:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch;}
+#textarea{font-size:0.13rem;}
+#change{display:none; position:fixed; z-index:1; right:0.1rem; bottom:0.1rem; width:0.8rem; height:0.3rem; border:none; font-size:0.14rem; border-radius:0.03rem; background:rgba(0,0,0,0.8); color:#ffffff; outline:none; cursor:pointer; -webkit-appearance:none;}
+#menu{margin-top:-0.42rem; width:100%; height:0.42rem; position:relative; overflow:auto; overflow-y:hidden; background:#ffffff; -webkit-overflow-scrolling:touch;}
+#menu:after{content:""; display:block; position:absolute; z-index:1; left:0; bottom:0; width:100%; height:0.01rem; overflow:hidden; background:#eaeaea; -webkit-transform:scaleY(0.5); transform:scaleY(0.5); -webkit-transform-origin:bottom; transform-origin:bottom;}
+#row{height:100%; overflow:hidden;}
+#row a{display:block; float:left; width:0.42rem; height:0.42rem; background:no-repeat center center; background-size:0.2rem 0.2rem;}
+#row a.this{background-color:#fff9c6;}
+#row .code{background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%0A%20width%3D%2284.000000pt%22%20height%3D%2284.000000pt%22%20viewBox%3D%220%200%2084.000000%2084.000000%22%20%3E%3Cg%20transform%3D%22translate(0.000000%2C84.000000)%20scale(0.100000%2C-0.100000)%22%0Afill%3D%22%23444444%22%20stroke%3D%22none%22%3E%3Cpath%20d%3D%22M186%20546%20c-58%20-62%20-106%20-120%20-106%20-127%200%20-21%20222%20-239%20243%20-239%2010%200%0A20%207%2024%2016%204%2011%20-25%2047%20-98%20120%20l-104%20104%20104%20104%20c106%20106%20121%20136%2067%20136%0A-18%200%20-51%20-29%20-130%20-114z%22%2F%3E%3Cpath%20d%3D%22M483%20644%20c-4%20-11%2025%20-47%2098%20-120%20l104%20-104%20-104%20-104%20c-73%20-73%20-102%0A-109%20-98%20-120%204%20-9%2014%20-16%2024%20-16%2021%200%20243%20219%20243%20239%200%207%20-48%2065%20-106%20127%0A-79%2085%20-112%20114%20-130%20114%20-14%200%20-27%20-7%20-31%20-16z%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");}
+</style>
+</head>
+
+<body>
+<div id="view">
+	<div id="menu">
+		<div id="row">
+			<a class="code" href="javascript:void(0)" onclick="changeDisplay()"></a>
+		</div>
+	</div>
+	<div id="article">
+		<div id="editor" contenteditable="true" onmouseup="saveSelection()" onkeyup="editorKeyup()" onfocus="restoreSelection()" placeholder="添加图片和文字让您的商品看起来更诱人"></div>
+		<textarea id="textarea" onkeyup="syncContent()" style="display:none;" placeholder="内容的HTML代码在这里"></textarea>
+	</div>
+</div>
+<input id="change" type="button" value=" 切换 " onclick="changeDisplay()" />
+<script>
+var placeholder = null, savedRange = null, isEditorShow = true, editor = $('editor'), textarea = $('textarea'), menus = $('row').getElementsByTagName('a');
+$('row').style.width = (menus[0].clientWidth * menus.length) + 'px';
+
+//showMenu();
+
+function $(id){
+	return document.getElementById(id);
+}
+
+function showMenu(){
+	addClass($('view'), 'showmenu');
+}
+
+function saveSelection(){
+	savedRange = window.getSelection ? window.getSelection().getRangeAt(0) : document.selection.createRange();
+}
+function restoreSelection(){
+	editor.focus();
+	if (savedRange != null) {
+		var selection = window.getSelection ? window.getSelection() : document.selection;
+		if (window.getSelection && selection.rangeCount) selection.removeAllRanges();
+		selection.addRange(savedRange);
+	}
+}
+function moveEnd(){
+	
+}
+
+function editorBlur(){
+	editor.blur();
+}
+function editorKeyup(){
+	checkEditorHtml();
+	saveSelection();
+	syncContent();
+}
+function syncContent(player){
+	if (typeof player != 'undefined') {
+		if (player == editor) {
+			setCode(getHtml());
+		} else if (player == textarea) {
+			setHtml(getCode());
+		}
+	} else {
+		if (isEditorShow) {
+			setCode(getHtml());
+		} else {
+			setHtml(getCode());
+		}
+	}
+}
+function checkEditorHtml(){
+	if (/^<br[^>]*>$/i.test(getHtml())) setHtml('');
+}
+
+function changeDisplay(){
+	syncContent();
+	if (isEditorShow) {
+		isEditorShow = false;
+		editor.style.display = 'none';
+		textarea.style.display = '';
+		addClass($('row').getElementsByClassName('code')[0], 'this');
+	} else {
+		isEditorShow = true;
+		editor.style.display = '';
+		textarea.style.display = 'none';
+		removeClass($('row').getElementsByClassName('code')[0], 'this');
+	}
+}
+
+function setPlaceholder(str){
+	placeholder = str;
+	editor.setAttribute('placeholder', placeholder);
+}
+
+function insertHtml(html){
+	if (isEditorShow) {
+		editor.focus();
+		var selection = window.getSelection ? window.getSelection() : document.selection,
+		range = selection.createRange ? selection.createRange() : selection.getRangeAt(0),
+		tag = document.createElement('span');
+		tag.innerHTML = html;
+		range.insertNode(tag);
+		selection.addRange(range);
+	} else {
+		editor.innerHTML += html;
+		syncContent(editor);
+	}
+}
+
+function insertImage(imageUrls){
+	if (!(imageUrls instanceof Array)) imageUrls = [imageUrls];
+	var html = '';
+	for (var i=0; i<imageUrls.length; i++) {
+		html += '<img src="'+imageUrls[i]+'" id="'+getTimeAndRandom()+'" style="width:100%;"><div><br></div>';
+	}
+	insertHtml(html);
+}
+function updateImage(imageId, imageUrl, imageWidth, imageHeight){
+	if (!imageId) return;
+	var image = $(imageId);
+	if (!image) return;
+	if (imageUrl) image.setAttribute('src', imageUrl);
+	if (imageWidth && imageWidth>0) image.style.width = imageWidth+'px';
+	if (imageHeight && imageHeight>0) image.style.height = imageHeight+'px';
+}
+
+function getTagsAt(x, y){
+	var tags = ',', e = getElementAt(x, y);
+	while (e) {
+		if (e.tagName) tags += e.tagName + ',';
+		e = e.parentNode;
+	}
+	return tags;
+}
+function getElementAt(x, y){
+	return document.elementFromPoint(x, y);
+}
+
+function getHtml(){
+	return editor.innerHTML;
+}
+function setHtml(html){
+	editor.innerHTML = html;
+}
+
+function getCode(){
+	return textarea.value;
+}
+function setCode(code){
+	textarea.value = code;
+}
+
+function dateTime(){
+	var d = new Date(), year = d.getFullYear()+'', month = d.getMonth()+1, day = d.getDate(),
+	hours = d.getHours(), minutes = d.getMinutes(), seconds = d.getSeconds(), time = year;
+	time += (month>9?'':'0') + month;
+	time += (day>9?'':'0') + day;
+	time += (hours>9?'':'0') + hours;
+	time += (minutes>9?'':'0') + minutes;
+	time += (seconds>9?'':'0') + seconds;
+	return time;
+}
+function rndNum(n){
+	var rnd = '';
+	for (var i=0; i<n; i++) {
+		rnd += Math.floor(Math.random()*10);
+	}
+	return rnd;
+}
+function getTimeAndRandom(){
+	return dateTime()+rndNum(4);
+}
+
+function hasClass(obj, cls){
+	return obj.className.match(new RegExp('(\\s|^)'+cls+'(\\s|$)'));
+}
+function addClass(obj, cls){
+	if (!hasClass(obj, cls)) obj.className += ' '+cls;
+}
+function removeClass(obj, cls){
+	if (hasClass(obj, cls)) obj.className = obj.className.replace(new RegExp('(\\s|^)'+cls+'(\\s|$)'), ' ');
+}
+
+window.onload = function(){
+	setTimeout(function(){
+		if (!placeholder.length) setPlaceholder('添加图片和文字让您的商品看起来更诱人');
+		var img = document.getElementsByTagName('img');
+		for (var i=0; i<img.length; i++) {
+			img[i].onload = function(e){
+				e.stopPropagation();
+				if (this.offsetWidth<=300 || this.style.width=='100%') return;
+				if (this.getAttribute('width')) this.removeAttribute('width');
+				if (this.getAttribute('height')) this.removeAttribute('height');
+				this.style.width = '100%';
+				this.style.height = '';
+			};
+		}
+	}, 100);
+};
+</script>
+</body>
+</html>
